@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import {
   Form,
@@ -13,24 +13,25 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { SignupValidation } from "@/lib/validation";
 import Loader from "@/components/ui/shared/Loader";
 import { useToast } from "@/components/ui/use-toast"
+import { SignupValidation } from "@/lib/validation";
 
 import { useCreateUserAccount, useSignInAccount } from "@/lib/react-query/queriesAndMutations";
+import { useUserContext } from "@/context/AuthContext";
 
 
 
 const SignUpForm = () => {
   const {toast} = useToast();
+  const {checkAuthUser, isLoading :isUserLoading} = useUserContext();
+  const navigate = useNavigate();
   
-  const{ mutateAsync: createUserAccount, isLoading:
-     isCreatingUser } = useCreateUserAccount();
+  const{ mutateAsync: createUserAccount, isPending: isCreatingAccount } = useCreateUserAccount();
 
-  const { mutateAsync: signInAccount, isLoading:
-      isSigningIn} = useSignInAccount();
+  const { mutateAsync: signInAccount, isPending: isSigningIn} = useSignInAccount();
 
-  // 1. Define your form.
+  
   const form = useForm<z.infer<typeof SignupValidation>>({
     resolver: zodResolver(SignupValidation),
     defaultValues: {
@@ -56,6 +57,16 @@ const SignUpForm = () => {
     })
 
     if(!session){
+      return toast({ title: 'Sign in failed. Please try again.'})
+    }
+
+    const isLoggedIn = await checkAuthUser();
+
+    if(isLoggedIn){
+      form.reset();
+
+      navigate('/')
+    } else{
       return toast({ title: 'Sign in failed. Please try again.'})
     }
   }
@@ -126,7 +137,7 @@ const SignUpForm = () => {
             )}
             />
           <Button type="submit" className="shad-button_primary">
-            {isCreatingUser ? (
+            {isCreatingAccount ? (
               <div className="flex-center gap-2">
                 <Loader/> Loading...
               </div>
