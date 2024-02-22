@@ -13,7 +13,7 @@ import CreatePost from './_root/pages/CreatePost';
 
 const App = () => {
   return (
-    <main className='flex h-screen'>
+    <main className='flex h-screen w-full'>
         <Routes>
             {/* {public routes} */}
             <Route element={<AuthLayout />} >
